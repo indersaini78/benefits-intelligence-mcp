@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/Solution Items/" />
+  <Folder Name="/Solution Items/">
+    <File Path="Notes.txt" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Mcp.AccountAccess/Mcp.AccountAccess.csproj" />
     <Project Path="src/Mcp.BillingPayroll/Mcp.BillingPayroll.csproj" />

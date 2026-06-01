@@ -1,0 +1,474 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace Shared.Infrastructure.Persistence.BillingPayroll;
+
+public partial class BillingPayrollDbContext : DbContext
+{
+    public BillingPayrollDbContext(DbContextOptions<BillingPayrollDbContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<Accumulator> Accumulators { get; set; }
+
+    public virtual DbSet<BenefitPlan> BenefitPlans { get; set; }
+
+    public virtual DbSet<CoverageHistory> CoverageHistories { get; set; }
+
+    public virtual DbSet<Dependent> Dependents { get; set; }
+
+    public virtual DbSet<EmployerGroup> EmployerGroups { get; set; }
+
+    public virtual DbSet<Invoice> Invoices { get; set; }
+
+    public virtual DbSet<InvoiceLine> InvoiceLines { get; set; }
+
+    public virtual DbSet<Member> Members { get; set; }
+
+    public virtual DbSet<MemberCoverage> MemberCoverages { get; set; }
+
+    public virtual DbSet<Payment> Payments { get; set; }
+
+    public virtual DbSet<PayrollDeduction> PayrollDeductions { get; set; }
+
+    public virtual DbSet<PayrollFile> PayrollFiles { get; set; }
+
+    public virtual DbSet<PremiumRate> PremiumRates { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Accumulator>(entity =>
+        {
+            entity.HasKey(e => e.AccumulatorId).HasName("PK_elig_Accumulator");
+
+            entity.ToTable("Accumulator", "elig");
+
+            entity.HasIndex(e => new { e.MemberId, e.PlanYear }, "IX_elig_Accumulator_Member");
+
+            entity.HasIndex(e => new { e.MemberId, e.PlanId, e.PlanYear, e.AccumulatorType }, "UQ_elig_Accumulator_MemberPlanYearType").IsUnique();
+
+            entity.Property(e => e.AccumulatorType)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.AppliedAmount).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.LastUpdatedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_elig_Accumulator_Updated");
+            entity.Property(e => e.LimitAmount).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.PlanId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Accumulators)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_elig_Accumulator_Member");
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.Accumulators)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_elig_Accumulator_Plan");
+        });
+
+        modelBuilder.Entity<BenefitPlan>(entity =>
+        {
+            entity.HasKey(e => e.PlanId).HasName("PK_elig_BenefitPlan");
+
+            entity.ToTable("BenefitPlan", "elig");
+
+            entity.HasIndex(e => new { e.PlanName, e.PlanYear }, "UQ_elig_BenefitPlan_NameYear").IsUnique();
+
+            entity.Property(e => e.PlanId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.CarrierId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.Coinsurance).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Copay).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DeductibleFam).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DeductibleInd).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.LineOfBusiness)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.NetworkType)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.OopMaxFam).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.OopMaxInd).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PlanName).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<CoverageHistory>(entity =>
+        {
+            entity.HasKey(e => e.HistoryId).HasName("PK_elig_CoverageHistory");
+
+            entity.ToTable("CoverageHistory", "elig");
+
+            entity.HasIndex(e => e.CoverageId, "IX_elig_CoverageHistory_Coverage");
+
+            entity.Property(e => e.ChangeType)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.ChangedBy)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.ChangedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_elig_CoverageHistory_Changed");
+            entity.Property(e => e.CoverageId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Member).WithMany(p => p.CoverageHistories)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_elig_CoverageHistory_Member");
+        });
+
+        modelBuilder.Entity<Dependent>(entity =>
+        {
+            entity.HasKey(e => e.DependentId).HasName("PK_member_Dependent");
+
+            entity.ToTable("Dependent", "member");
+
+            entity.Property(e => e.DependentId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.Gender)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.IsActive).HasDefaultValue(true, "DF_member_Dependent_IsActive");
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.Relationship)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Dependents)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_member_Dependent_Member");
+        });
+
+        modelBuilder.Entity<EmployerGroup>(entity =>
+        {
+            entity.HasKey(e => e.GroupPolicyId).HasName("PK_member_EmployerGroup");
+
+            entity.ToTable("EmployerGroup", "member");
+
+            entity.Property(e => e.GroupPolicyId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_member_EmployerGroup_Created");
+            entity.Property(e => e.GroupName).HasMaxLength(200);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Active", "DF_member_EmployerGroup_Status");
+            entity.Property(e => e.TpaId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.HasKey(e => e.InvoiceId).HasName("PK_billing_Invoice");
+
+            entity.ToTable("Invoice", "billing");
+
+            entity.HasIndex(e => new { e.GroupPolicyId, e.Status }, "IX_billing_Invoice_Group");
+
+            entity.HasIndex(e => new { e.MemberId, e.Status }, "IX_billing_Invoice_Member");
+
+            entity.Property(e => e.InvoiceId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.BalanceDue).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.CreatedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_billing_Invoice_Created");
+            entity.Property(e => e.GroupPolicyId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Open", "DF_billing_Invoice_Status");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(12, 2)");
+
+            entity.HasOne(d => d.GroupPolicy).WithMany(p => p.Invoices)
+                .HasForeignKey(d => d.GroupPolicyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_billing_Invoice_Group");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Invoices)
+                .HasForeignKey(d => d.MemberId)
+                .HasConstraintName("FK_billing_Invoice_Member");
+        });
+
+        modelBuilder.Entity<InvoiceLine>(entity =>
+        {
+            entity.HasKey(e => e.InvoiceLineId).HasName("PK_billing_InvoiceLine");
+
+            entity.ToTable("InvoiceLine", "billing");
+
+            entity.Property(e => e.EmployeePortion).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.EmployerPortion).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.InvoiceId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.LineDescription).HasMaxLength(200);
+            entity.Property(e => e.PlanId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.PremiumAmount).HasColumnType("decimal(12, 2)");
+
+            entity.HasOne(d => d.Invoice).WithMany(p => p.InvoiceLines)
+                .HasForeignKey(d => d.InvoiceId)
+                .HasConstraintName("FK_billing_InvoiceLine_Invoice");
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.InvoiceLines)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_billing_InvoiceLine_Plan");
+        });
+
+        modelBuilder.Entity<Member>(entity =>
+        {
+            entity.HasKey(e => e.MemberId).HasName("PK_member_Member");
+
+            entity.ToTable("Member", "member");
+
+            entity.HasIndex(e => e.GroupPolicyId, "IX_member_Member_Group");
+
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.AddressLine1).HasMaxLength(200);
+            entity.Property(e => e.City).HasMaxLength(100);
+            entity.Property(e => e.CreatedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_member_Member_Created");
+            entity.Property(e => e.Email).HasMaxLength(200);
+            entity.Property(e => e.EmploymentStatus)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Active", "DF_member_Member_EmpStatus");
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.GroupPolicyId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.Phone)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.SalaryBand)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.SsnLast4)
+                .HasMaxLength(4)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.State)
+                .HasMaxLength(2)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.UpdatedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_member_Member_Updated");
+            entity.Property(e => e.Zip)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.GroupPolicy).WithMany(p => p.Members)
+                .HasForeignKey(d => d.GroupPolicyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_member_Member_Group");
+        });
+
+        modelBuilder.Entity<MemberCoverage>(entity =>
+        {
+            entity.HasKey(e => e.CoverageId).HasName("PK_elig_MemberCoverage");
+
+            entity.ToTable("MemberCoverage", "elig");
+
+            entity.HasIndex(e => new { e.MemberId, e.Status }, "IX_elig_MemberCoverage_Member");
+
+            entity.Property(e => e.CoverageId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_elig_MemberCoverage_Created");
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.PlanId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.PrimaryCareProvNpi)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Active", "DF_elig_MemberCoverage_Status");
+            entity.Property(e => e.Tier)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Member).WithMany(p => p.MemberCoverages)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_elig_MemberCoverage_Member");
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.MemberCoverages)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_elig_MemberCoverage_Plan");
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.PaymentId).HasName("PK_billing_Payment");
+
+            entity.ToTable("Payment", "billing");
+
+            entity.HasIndex(e => e.ConfirmationNumber, "UQ_billing_Payment_Confirmation").IsUnique();
+
+            entity.Property(e => e.PaymentId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.Amount).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.ConfirmationNumber)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.GroupPolicyId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.InvoiceId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Posted", "DF_billing_Payment_Status");
+
+            entity.HasOne(d => d.GroupPolicy).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.GroupPolicyId)
+                .HasConstraintName("FK_billing_Payment_Group");
+
+            entity.HasOne(d => d.Invoice).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.InvoiceId)
+                .HasConstraintName("FK_billing_Payment_Invoice");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.MemberId)
+                .HasConstraintName("FK_billing_Payment_Member");
+        });
+
+        modelBuilder.Entity<PayrollDeduction>(entity =>
+        {
+            entity.HasKey(e => e.DeductionId).HasName("PK_payroll_PayrollDeduction");
+
+            entity.ToTable("PayrollDeduction", "payroll");
+
+            entity.HasIndex(e => new { e.MemberId, e.PayPeriodEnd }, "IX_payroll_Deduction_Member");
+
+            entity.Property(e => e.DeductionId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedUtc).HasDefaultValueSql("(sysutcdatetime())", "DF_payroll_Deduction_Created");
+            entity.Property(e => e.MemberId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.PlanId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.PostTaxAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PreTaxAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Scheduled", "DF_payroll_Deduction_Status");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.PayrollDeductions)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_payroll_Deduction_Member");
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.PayrollDeductions)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_payroll_Deduction_Plan");
+        });
+
+        modelBuilder.Entity<PayrollFile>(entity =>
+        {
+            entity.HasKey(e => e.PayrollFileId).HasName("PK_payroll_PayrollFile");
+
+            entity.ToTable("PayrollFile", "payroll");
+
+            entity.Property(e => e.PayrollFileId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.FileBlobUri).HasMaxLength(500);
+            entity.Property(e => e.GroupPolicyId)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Received", "DF_payroll_File_Status");
+            entity.Property(e => e.TotalDeductions).HasColumnType("decimal(14, 2)");
+
+            entity.HasOne(d => d.GroupPolicy).WithMany(p => p.PayrollFiles)
+                .HasForeignKey(d => d.GroupPolicyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_payroll_File_Group");
+        });
+
+        modelBuilder.Entity<PremiumRate>(entity =>
+        {
+            entity.HasKey(e => e.RateId).HasName("PK_billing_PremiumRate");
+
+            entity.ToTable("PremiumRate", "billing");
+
+            entity.Property(e => e.RateId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.AgeBand)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.MonthlyPremium).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PlanId)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            entity.Property(e => e.SalaryBand)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.Tier)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Plan).WithMany(p => p.PremiumRates)
+                .HasForeignKey(d => d.PlanId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_billing_PremiumRate_Plan");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
