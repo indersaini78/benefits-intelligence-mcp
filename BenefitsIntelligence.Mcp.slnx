@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Solution Items/" />
+  <Folder Name="/src/">
+    <Project Path="src/Mcp.AccountAccess/Mcp.AccountAccess.csproj" />
+    <Project Path="src/Mcp.BillingPayroll/Mcp.BillingPayroll.csproj" />
+    <Project Path="src/Mcp.CustomerSupport/Mcp.CustomerSupport.csproj" />
+    <Project Path="src/Mcp.Eligibility/Mcp.Eligibility.csproj" />
+    <Project Path="src/Mcp.Enrollment/Mcp.Enrollment.csproj" />
+    <Project Path="src/Shared.Contracts/Shared.Contracts.csproj" />
+    <Project Path="src/Shared.Infrastructure/Shared.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Mcp.AccountAccess.Tests/Mcp.AccountAccess.Tests.csproj" />
+    <Project Path="tests/Mcp.BillingPayroll.Tests/Mcp.BillingPayroll.Tests.csproj" />
+    <Project Path="tests/Mcp.CustomerSupport.Tests/Mcp.CustomerSupport.Tests.csproj" />
+    <Project Path="tests/Mcp.Eligibility.Tests/Mcp.Eligibility.Tests.csproj" />
+    <Project Path="tests/Mcp.Enrollment.Tests/Mcp.Enrollment.Tests.csproj" />
+  </Folder>
+  <Folder Name="/db/">
+    <File Path="db/MCP_Database_Schema.md" />
+    <File Path="db/MCP_Database_Schema.sql" />
+   </Folder>
+</Solution>
