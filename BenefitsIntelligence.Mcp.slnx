@@ -12,6 +12,7 @@
     <Project Path="src/Shared.Infrastructure/Shared.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/BenefitsIntelligence.IntegrationTests/BenefitsIntelligence.IntegrationTests.csproj" Id="e98bbac0-ec5e-47d0-91bb-777b29282abd" />
     <Project Path="tests/Mcp.AccountAccess.Tests/Mcp.AccountAccess.Tests.csproj" />
     <Project Path="tests/Mcp.BillingPayroll.Tests/Mcp.BillingPayroll.Tests.csproj" />
     <Project Path="tests/Mcp.CustomerSupport.Tests/Mcp.CustomerSupport.Tests.csproj" />
