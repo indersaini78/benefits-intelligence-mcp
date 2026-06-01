@@ -3,6 +3,8 @@
 npx @modelcontextprotocol/inspector dotnet src/Mcp.Eligibility/bin/Debug/net10.0/Mcp.Eligibility.dll
 npx @modelcontextprotocol/inspector dotnet src/Mcp.Enrollment/bin/Debug/net10.0/Mcp.Enrollment.dll
 npx @modelcontextprotocol/inspector dotnet src/Mcp.BillingPayroll/bin/Debug/net10.0/Mcp.BillingPayroll.dll
+npx @modelcontextprotocol/inspector dotnet src/Mcp.AccountAccess/bin/Debug/net10.0/Mcp.AccountAccess.dll
+npx @modelcontextprotocol/inspector dotnet src/Mcp.CustomerSupport/bin/Debug/net10.0/Mcp.CustomerSupport.dll
 
 
 
@@ -10,3 +12,4 @@ Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=BenefitsIntelligenceD
 Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=BenefitsIntelligenceDb;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer     -OutputDir Persistence\Enrollment -ContextDir Persistence\Enrollment -Context EnrollmentDbContext -Schemas enroll, member, elig -NoOnConfiguring -UseDatabaseNames -Force
 Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=BenefitsIntelligenceDb;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Persistence\BillingPayroll -ContextDir Persistence\BillingPayroll -Context BillingPayrollDbContext -Schemas billing,payroll,member,elig -NoOnConfiguring -UseDatabaseNames -Force
 Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=BenefitsIntelligenceDb;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Persistence\Iam -ContextDir Persistence\Iam -Context IamDbContext -Schemas iam,member -NoOnConfiguring -UseDatabaseNames -Force
+Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=BenefitsIntelligenceDb;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Persistence\Support -ContextDir Persistence\Support -Context SupportDbContext -Schemas support,member,iam -NoOnConfiguring -UseDatabaseNames -Force
